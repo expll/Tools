@@ -13,20 +13,26 @@
 @implementation Tools
 
 
-// 需要权限： com.apple.springboard.launchapplications : YES
+
 +(void)launchApp:(NSString *)bundleid
 {
-    if ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0f)
-    {
+    Class LSApplicationWorkspace_class = objc_getClass("LSApplicationWorkspace");
+    LSApplicationWorkspace *workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
+    
+    if ([workspace respondsToSelector:@selector(openApplicationWithBundleID:)]) {
         Class LSApplicationWorkspace_class = objc_getClass("LSApplicationWorkspace");
         LSApplicationWorkspace *workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
         [workspace openApplicationWithBundleID:bundleid];
     }
-    else {
+    else
+    {
+        // 需要权限： com.apple.springboard.launchapplications : YES
         CFStringRef bundleRef = (__bridge CFStringRef)bundleid;
         int ret = SBSLaunchApplicationWithIdentifier(bundleRef, NO);
         NSLog(@"启动程序 ret:%d", ret);
     }
+    
+    
 }
 
 @end
