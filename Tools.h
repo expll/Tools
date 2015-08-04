@@ -11,5 +11,8 @@
 
 @interface Tools : NSObject
 +(void)launchApp:(NSString *)bundleid;
++ (NSInvocation *)InvocationWithSEL:(SEL)s OBJ:(id)o Arguments:(NSArray *)args;
++(BOOL) isInstallIpa:(NSString *)bundleID;
+
 
 @end

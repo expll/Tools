@@ -8,6 +8,8 @@
 
 #import "Tools.h"
 #import <UIKit/UIKit.h>
+#import <SpringBoardServices/SpringBoardServices.h>
+#import <MobileInstallation/MobileInstallation.h>
 #import "LSApplicationWorkspace.h"
 
 @implementation Tools
@@ -34,5 +36,66 @@
     
     
 }
+
++ (NSInvocation *)InvocationWithSEL:(SEL)s OBJ:(id)o Arguments:(NSArray *)args
+{
+    SEL mySelector = s;
+    struct objc_object *a = (__bridge struct objc_object *)(o);
+    NSMethodSignature * sig = [a->isa instanceMethodSignatureForSelector: mySelector];
+    
+    NSInvocation * myInvocation = [NSInvocation invocationWithMethodSignature: sig];
+    [myInvocation setTarget: o];
+    [myInvocation setSelector: mySelector];
+    
+    
+    
+    for (int i = 0; i < args.count; i++) {
+        id arg = args[i];
+        [myInvocation setArgument: &arg atIndex: i+2];
+    }
+    
+    [myInvocation retainArguments];
+    
+    return myInvocation;
+    
+}
+
++(BOOL) isInstallIpa:(NSString *)bundleID
+{
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0f)
+    {
+        Class LSApplicationWorkspace_class = objc_getClass("LSApplicationWorkspace");
+        NSObject* workspace = [LSApplicationWorkspace_class performSelector:@selector(defaultWorkspace)];
+        NSArray *array = [workspace performSelector:@selector(allInstalledApplications)];
+        
+        for (int i = 0; i < array.count; i ++)
+        {
+            Class LSApplicationProxy_class = [array objectAtIndex:i];
+            NSString *bundleIdString = [LSApplicationProxy_class performSelector:@selector(applicationIdentifier)];
+            
+            if ([bundleIdString isEqualToString:bundleID])
+            {
+                return YES;
+            }
+        }
+    }else
+    {
+        NSDictionary *options = @{@"ApplicationType": @"Any",
+                                  @"BundleIDs":bundleID};
+        
+        NSDictionary *datas =  (__bridge_transfer  NSDictionary*)MobileInstallationLookup((__bridge CFDictionaryRef)options);
+        if (datas.count > 0) {
+            return YES;
+        }else
+            return NO;
+        
+    }
+    
+    
+    return NO;
+    
+    
+}
+
 
 @end
